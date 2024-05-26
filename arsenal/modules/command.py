@@ -44,23 +44,24 @@ class Command:
         Process cmdline from the cheatsheet to get args names
         """
         self.args = {}
-        # Use a list of tuples here instead of dict in case
-        # the cmd has multiple args with the same name..
-        position = 0
-        for arg_name in re.findall(r'<([^ <>]+)>', cheat.command):
+        for position, arg_name in enumerate(re.findall(r"<([^ <>]+)>", cheat.command)):
             if "|" in arg_name:  # Format <name|default_value>
                 name, var = arg_name.split("|")[:2]
                 self._add_arg(name, var, position)
                 # Variable has been added to cheat variables before, remove it
                 cheat.command = cheat.command.replace(arg_name, name)
                 self.cmdline = cheat.command
-            elif arg_name in gvars:
-                self._add_arg(arg_name, gvars[arg_name], position)
-            elif arg_name in cheat.variables:
-                self._add_arg(arg_name, cheat.variables[arg_name], position)
             else:
                 self._add_arg(arg_name, "", position)
-            position += 1 
+        # compute values
+        for arg_name in self.args:
+            if arg_name in gvars:
+                self.args[arg_name]["value"] = gvars[arg_name]
+            elif arg_name in cheat.variables:
+                self.args[arg_name]["value"] = cheat.variables[arg_name]
+            else:
+                continue
+        print("toto")
 
     def _add_arg(self, name=None, value="", position=0):
         if name in self.args:
@@ -86,7 +87,7 @@ class Command:
 
     def get_command_parts(self):
         if self.nb_place_holder != 0:
-            regex = '|'.join('<' + arg + '>' for arg in self.args)
+            regex = "|".join("<" + arg + ">" for arg in self.args)
             cmdparts = re.split(regex, self.cmdline)
         else:
             cmdparts = [self.cmdline]
@@ -103,7 +104,7 @@ class Command:
         argsval = [a[1] for a in self.args]
         if "" not in argsval:
             # split cmdline at each arg position
-            regex = '|'.join('<' + arg + '>' for arg in self.args)
+            regex = "|".join("<" + arg + ">" for arg in self.args)
             cmdparts = re.split(regex, self.cmdline)
             # concat command parts and arguments values to build the command
             self.cmdline = ""
