@@ -14,6 +14,7 @@ from .modules import config
 from .modules import cheat
 from .modules import check
 from .modules import gui as arsenal_gui
+from .modules import guing as arsenal_gui_ng
 
 
 class PanePathAction(argparse.Action):
@@ -80,10 +81,13 @@ class App:
 
     def start(self, args, cheatsheets):
         # create gui object
-        gui = arsenal_gui.Gui()
+        #gui = arsenal_gui.Gui()
+        gui = arsenal_gui_ng.ArsenalNGGui(cheatsheets=cheatsheets, has_prefix=args.prefix)
+
         while True:
             # launch gui
-            cmd = gui.run(cheatsheets, args.prefix)
+            #cmd = gui.run(cheatsheets, args.prefix)
+            cmd = gui.run()
 
             if cmd == None:
                 exit(0)

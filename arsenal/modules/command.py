@@ -61,7 +61,6 @@ class Command:
                 self.args[arg_name]["value"] = cheat.variables[arg_name]
             else:
                 continue
-        print("toto")
 
     def _add_arg(self, name=None, value="", position=0):
         if name in self.args:
@@ -85,6 +84,9 @@ class Command:
             if position in v["positions"]:
                 self.args[k]["value"] = value
 
+    def set_arg(self, name, value):
+        self.args[name]["value"] = value
+
     def get_command_parts(self):
         if self.nb_place_holder != 0:
             regex = "|".join("<" + arg + ">" for arg in self.args)
@@ -101,7 +103,7 @@ class Command:
         """
         if self.nb_place_holder == 0 :
             return True
-        argsval = [a[1] for a in self.args]
+        argsval = [a["value"] for a in self.args.values()]
         if "" not in argsval:
             # split cmdline at each arg position
             regex = "|".join("<" + arg + ">" for arg in self.args)
@@ -114,7 +116,7 @@ class Command:
                 else:
                     _, value = self.get_arg((i - 1) // 2)
                     self.cmdline += value
-            curses.endwin()
+            #curses.endwin()
 
         # build ok ?
         return "" not in argsval
