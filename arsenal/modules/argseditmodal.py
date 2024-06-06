@@ -8,6 +8,7 @@ from .command import Command
 class ArgsEditModal(ModalScreen[str]):
     cmd = None
     infobox = None
+    focus_save = None
 
     def __init__(self, cheat, arsenalGlobalVars, name=None, id=None, classes=None):
         self.infobox = TextArea.code_editor(id="infobox", text="")
@@ -15,10 +16,7 @@ class ArgsEditModal(ModalScreen[str]):
         self.infobox.read_only = True
         self.inputs = {}
         self.cmd = Command(cheat, arsenalGlobalVars)
-              
         super().__init__(name=name, id=id, classes=classes)
-
-
 
     def compose(self):
         with Container():
@@ -27,6 +25,11 @@ class ArgsEditModal(ModalScreen[str]):
                 self.inputs[arg_name] = Input(id=arg_name, placeholder=arg_name, type="text", value=arg_data["value"])
                 yield self.inputs[arg_name]
         self.infobox.load_text(self.cmd.cmdline)
+
+    def on_mount(self) -> None:
+        key = list(self.inputs.keys())[0]
+        self.set_focus(self.inputs[key])
+        self.focus_save = self.focused
 
     def on_click(self, event: events.Click) -> None:
         """Prevent selection of the DataTable"""
@@ -38,13 +41,22 @@ class ArgsEditModal(ModalScreen[str]):
         """Prevent selection of the DataTable"""
         event.prevent_default()
         event.stop()
+        self.set_focus(self.focus_save)
         return
 
     def on_key(self, event: events.Key) -> None:
         event.stop()
-        if event.key == "tab":
-            self.focus_next()
-        if event.key == "enter":
+        if event.key in ["tab", "down", "shift+tab", "up"]:
+            if event.key == "tab" or event.key == "down":
+                self.focus_next()
+                if self.focused == self.infobox:
+                    self.focus_next()
+            elif event.key == "shift+tab" or event.key == "up":
+                self.focus_previous()
+                if self.focused == self.infobox:
+                    self.focus_previous()
+            self.focus_save = self.focused    
+        elif event.key == "enter":
             for name, i in self.inputs.items():
                 value = i.value if i.value is not None else ""
                 self.cmd.set_arg(name, value)

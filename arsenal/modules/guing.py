@@ -24,7 +24,6 @@ class ArsenalNGGui(App):
     input_buffer = ""
     savefile = config.savevarfile
     arg_edit_modal = None
-    save_focus = None
     cmd = ""
 
     table = None
@@ -71,23 +70,16 @@ class ArsenalNGGui(App):
         self.col4_size = math.floor(max_width * 55 / 100)
         self.compute_table()
         self.set_focus(self.input)
-        self.save_focus = self.focused        
 
     def on_mouse_down(self) -> None:
         """Reset focus on input"""
-        self.set_focus(self.save_focus)
-        #self.input.focus()
+        self.set_focus(self.input)
 
     def action_focus_previous(self):
         return
-        #super().action_focus_next()
 
     def action_focus_next(self):
         return
-
-#    def on_descendant_focus(self):
-#        if self.arg_edit_modal.cmd is not None:
-#            self.save_focus = self.focused
 
     @on(Input.Changed)
     def recompute_tabe(self, event: Input.Changed):
@@ -126,7 +118,6 @@ class ArsenalNGGui(App):
         elif event.key == "enter":
             self.arg_edit_modal = ArgsEditModal(self.filtered_cheats[self.table.cursor_row], self.arsenalGlobalVars)
             self.push_screen(self.arg_edit_modal, check_cmd)
-            #self.set_focus(self.save_focus)
 
         elif event.key == "escape":
             self.exit()      
