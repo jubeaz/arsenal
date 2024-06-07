@@ -3,3 +3,4 @@ docutils
 pyperclip
 pyyaml
 pyfzf
+textual

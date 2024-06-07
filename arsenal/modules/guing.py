@@ -2,13 +2,14 @@ from textual.app import App, ComposeResult
 from textual.widgets import Label, Input, TextArea
 from textual.containers import Container
 from textual import events, on
-from os.path import exists
+from os.path import exists, isdir
 from . import config
 from .command import Command
 from .mouselessdatatable import MouseLessDataTable
 from .argseditmodal import ArgsEditModal
 import json
 import math
+
 
 
 class FakeCommand:

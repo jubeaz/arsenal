@@ -116,7 +116,33 @@ class Command:
                 else:
                     _, value = self.get_arg((i - 1) // 2)
                     self.cmdline += value
-            #curses.endwin()
 
         # build ok ?
         return "" not in argsval
+
+    def preview(self):
+        """
+        Called after argument completion
+        -> if some args values are still empty do nothing
+        -> else build the final command string by adding args values
+        """
+        if self.nb_place_holder == 0 :
+            return self.cmdline
+  
+        # split cmdline at each arg position
+        regex = "|".join("<" + arg + ">" for arg in self.args)
+        cmdparts = re.split(regex, self.cmdline)
+        # concat command parts and arguments values to build the command
+        cmdline = ""
+        for i in range(len(cmdparts) + self.nb_place_holder):
+            if i % 2 == 0:
+                cmdline += cmdparts[i // 2]
+            else:
+                name, value = self.get_arg((i - 1) // 2)
+                if value == "":
+                    cmdline += f"<{name}>"
+                else:
+                    cmdline += value
+
+        # build ok ?
+        return cmdline

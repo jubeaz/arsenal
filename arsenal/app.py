@@ -53,6 +53,7 @@ class App:
         )
 
         group_out = parser.add_argument_group('output [default = prefill]')
+        group_out.add_argument('-l', '--legacy', action='store_true', help='legacy interface')
         group_out.add_argument('-p', '--print', action='store_true', help='Print the result')
         group_out.add_argument('-o', '--outfile', action='store', help='Output to file')
         group_out.add_argument('-x', '--copy', action='store_true', help='Output to clipboard')
@@ -81,13 +82,11 @@ class App:
 
     def start(self, args, cheatsheets):
         # create gui object
-        #gui = arsenal_gui.Gui()
-        gui = arsenal_gui_ng.ArsenalNGGui(cheatsheets=cheatsheets, has_prefix=args.prefix)
+        gui = arsenal_gui.Gui() if args.legacy else arsenal_gui_ng.ArsenalNGGui(cheatsheets=cheatsheets, has_prefix=args.prefix)
 
         while True:
             # launch gui
-            #cmd = gui.run(cheatsheets, args.prefix)
-            cmd = gui.run()
+            cmd = gui.run(cheatsheets, args.prefix) if args.legacy else gui.run()
 
             if cmd == None:
                 exit(0)
