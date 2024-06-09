@@ -82,7 +82,7 @@ class App:
 
     def start(self, args, cheatsheets):
         # create gui object
-        gui = arsenal_gui.Gui() if args.legacy else arsenal_gui_ng.ArsenalNGGui(cheatsheets=cheatsheets, has_prefix=args.prefix)
+        gui = arsenal_gui.Gui() if args.legacy else arsenal_gui_ng.ArsenalNGGui(cheatsheets=cheatsheets, args=args, tmux_session=self.tmux_session)
 
         while True:
             # launch gui

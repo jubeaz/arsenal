@@ -9,6 +9,7 @@ from .mouselessdatatable import MouseLessDataTable
 from .argseditmodal import ArgsEditModal
 import json
 import math
+import time
 
 
 
@@ -26,12 +27,17 @@ class ArsenalNGGui(App):
     savefile = config.savevarfile
     arg_edit_modal = None
     cmd = ""
+    args = None
+    arsenalGlobalVars = None
+    tmux_session = None
 
     table = None
     input = None 
 
-    def __init__(self, driver_class=None, css_path=None, watch_css=False, cheatsheets=None, has_prefix=False):
+    def __init__(self, driver_class=None, css_path=None, watch_css=False, cheatsheets=None, args=None, tmux_session=None):
         super().__init__(driver_class=None, css_path=None, watch_css=False)
+        self.args = args
+        self.tmux_session = tmux_session
         self.arg_edit_modal = None
         for value in cheatsheets.values():
             self.global_cheats.append(value)
@@ -40,8 +46,7 @@ class ArsenalNGGui(App):
                 self.arsenalGlobalVars = json.load(f)
         self.filtered_cheats = self.search()
         #wrapper(self.filtered_cheats_menu.run)
-        #if Gui.cmd != None and Gui.cmd.cmdline[0] != '>' and has_prefix:
-        #    self.prefix_cmdline_with_prefix()
+
 
 
     def compose(self) -> ComposeResult:
@@ -92,7 +97,7 @@ class ArsenalNGGui(App):
         def check_cmd(cmdline: str) -> None:
             """Called when QuitScreen is dismissed."""
             if cmdline:
-                self.exit(result=FakeCommand(cmdline))
+                self.process_cmdline(cmdline)
             else:
                 self.arg_edit_modal.cmd = None
                 self.arg_edit_modal = None
@@ -172,3 +177,52 @@ class ArsenalNGGui(App):
 
     def is_main_screen_active(self):
         return self.arg_edit_modal is None
+
+    def process_cmdline(self, cmdline):
+        if cmdline[0] == '>':
+            self.exit(result=FakeCommand(cmdline))
+        if self.args.prefix:
+                cmdline = self.prefix_cmdline_with_prefix(cmdline)
+
+        if self.args.tmux_new is False:
+            self.exit(result=FakeCommand(cmdline))
+        
+        self.process_tmux(cmdline)
+
+    def prefix_cmdline_with_prefix(self, cmdline):
+        if config.PREFIX_GLOBALVAR_NAME in self.arsenalGlobalVars:
+            cmdline = f"{self.arsenalGlobalVars[config.PREFIX_GLOBALVAR_NAME]} {cmdline}"
+        return cmdline
+
+    def process_tmux(self, cmdline):
+        pane_path = self.args.tmux_new.split(":")
+        new_window = False
+        import libtmux
+        try:
+            window = self.tmux_session.select_window(pane_path[1])
+        except libtmux.exc.LibTmuxException:
+            window = self.tmux_session.new_window(attach=False, window_name=pane_path[1])
+            new_window = True
+        if new_window:
+            pane = window.panes[0] 
+        elif pane_path[2] == "": # all panes
+            pane = None
+        elif int(pane_path[2]) > len(window.panes):
+            pane = window.split_window(attach=False)
+            time.sleep(0.3)
+        else:
+            pane = window.panes[int(pane_path[2])]
+        if pane:
+            if self.args.exec:
+                pane.send_keys(cmdline)
+            else:
+                pane.send_keys(cmdline, enter=False)
+                pane.select_pane()
+        else:
+            for pane in window.panes:
+                if self.args.exec:
+                    pane.send_keys(cmdline)
+                else:
+                    pane.send_keys(cmdline, enter=False)
+                    pane.select_pane()
+
