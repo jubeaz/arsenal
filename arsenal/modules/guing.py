@@ -184,10 +184,10 @@ class ArsenalNGGui(App):
         if self.args.prefix:
                 cmdline = self.prefix_cmdline_with_prefix(cmdline)
 
-        if self.args.tmux_new is False:
+        if self.args.tmux_new is None:
             self.exit(result=FakeCommand(cmdline))
-        
-        self.process_tmux(cmdline)
+        else:
+            self.process_tmux(cmdline)
 
     def prefix_cmdline_with_prefix(self, cmdline):
         if config.PREFIX_GLOBALVAR_NAME in self.arsenalGlobalVars:
